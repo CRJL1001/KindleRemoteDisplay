@@ -8,7 +8,7 @@ Go API, FrontEnd editor &amp; C programme for kindle to display the text from th
 
 - Un cross-compiler pour votre modèle de Kindle (Pour ma part Toolchain ARM générique)
 
-- La bibliothèque C libcurl
+- Les bibliothèques C libcurl et FBInk
 
 - Go
 
