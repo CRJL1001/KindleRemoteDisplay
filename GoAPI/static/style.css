@@ -1,0 +1,36 @@
+html body {
+    background : url("/static/kindle.webp") no-repeat;
+    background-size:cover;
+}
+
+body {
+    text-align: center;
+    padding-top: 20%;
+}
+
+p {
+    font-size: 32px;
+    background-color: lightgrey;
+    max-width: 70%;
+    justify-self: center;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 10px 10px 30px  black;
+}
+
+.formulaire{
+    justify-content: center;
+    display: flex;
+    gap: 20px;
+}
+
+#input-text, #input-btn {
+    min-width: 500px;
+    min-height: 50px;
+    padding: 20px;
+    font-size: 24px;
+}
+
+#input-btn {
+    min-width: 30px;
+}
