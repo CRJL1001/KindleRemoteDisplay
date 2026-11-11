@@ -13,6 +13,9 @@ const ADRESS = "0.0.0.0:8080"
 func main(){
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /message", handler)
+	fs := http.FileServer(http.Dir("GoAPI/static"))
+	mux.Handle("GET /static/", http.StripPrefix("/static/", fs))
+	mux.HandleFunc("GET /{$}", indexhandler)
 
 	server := &http.Server{
 		Addr: ADRESS,
@@ -32,4 +35,8 @@ func handler(w http.ResponseWriter, r *http.Request){
 	if _, err := fmt.Fprintln(w, CONTENT); err != nil {
 		log.Printf("Erreur de reponse :  %v", err)
 	}
+}
+
+func indexhandler(w http.ResponseWriter, r *http.Request){
+	http.ServeFile(w, r, "GoAPI/public/index.html")
 }
