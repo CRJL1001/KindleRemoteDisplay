@@ -8,8 +8,87 @@
 #include <sys/ioctl.h>
 #include <sys/poll.h>
 #include <unistd.h>
+#include <curl/curl.h>
+#include <string.h>
 
-static int wait_for_touch(void){
+const char *URL = "http://0.0.0.0:8080/message";
+
+struct Response {
+    char text[4096];
+    size_t length;
+};
+
+static size_t receive_text(char *data, size_t size, size_t count, void *userdata){
+    struct Response *response = userdata;
+    //taille encore disponible pour recevoir
+    size_t available = sizeof(response->text) - 1 - response->length;
+    //verifier capacitée
+    if (size != 0 && count > available / size)
+        return 0; //Stop la requête
+
+    size_t bytes = size * count;
+    if (bytes == 0){
+        return 0;
+    }
+
+    memcpy(response->text + response->length, data, bytes);
+    response->length += bytes;
+    response->text[response->length] = '\0';
+
+    return bytes;
+}
+
+static int fetchAPI(struct Response *response){
+    CURL *curl;
+    CURLcode result;
+
+    //inits request
+    result = curl_global_init(CURL_GLOBAL_ALL);
+    if (result != CURLE_OK)
+        return (int)result;
+
+    //fetch
+    curl = curl_easy_init();
+    if (!curl){
+        fprintf(stderr, "Création du client imppossible\n");
+        curl_global_cleanup();
+        return 1;
+    }
+    if (curl){
+        //set options
+        result = curl_easy_setopt(curl, CURLOPT_URL, URL);
+
+        if (result == CURLE_OK)
+            result = curl_easy_setopt(curl, CURLOPT_TIMEOUT, 10L);
+
+        if (result == CURLE_OK)
+            result = curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, receive_text);
+
+        if (result == CURLE_OK)
+            result = curl_easy_setopt(curl, CURLOPT_WRITEDATA, response);
+
+        if (result == CURLE_OK)
+            result = curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1L);
+
+        //perform
+        if (result == CURLE_OK)
+            result = curl_easy_perform(curl);
+
+        //errors
+
+        if (result != CURLE_OK){
+            fprintf(stderr, "curl_easy_perform failed %s \n", curl_easy_strerror(result));
+        }else {
+            //truc à faire
+        }
+    }
+    curl_easy_cleanup(curl);
+    curl_global_cleanup();
+    return (int)result;
+}
+
+static int wait_for_touch(int fbfd, FBInkConfig *config){
+    struct Response shown = {0};
     //init tactile
     int fd = open("/dev/input/event2", O_RDONLY | O_NONBLOCK);
     if (fd < 0){
@@ -26,16 +105,29 @@ static int wait_for_touch(void){
 
     int result = -1;
     bool pressed = false;
+    bool refreshed = true;
     struct pollfd input = {.fd = fd, .events = POLLIN};
 
     //écoute et vérif
     for (;;){
         //lance un timer de 30scd à chaque input
-        int ready = poll(&input, 1, 30000);
+        if (refreshed){
+            struct Response next = {0};
+            if (fetchAPI(&next) == 0 && strcmp(next.text, shown.text) != 0){
+                if (fbink_print(fbfd, next.text, config) < 0){
+                    fprintf(stderr, "Erreur d'affichage GBInk\n");
+                    break;
+                }
+                shown = next;
+            }
+            refreshed = false;
+        }
+
+        int ready = poll(&input, 1, 5000);
 
         if (ready == 0){
-            fprintf(stderr, "Délais sans événements dépassés\n");
-            break;
+            refreshed = true;
+            continue;
         }
 
         if (ready < 0){
@@ -95,6 +187,7 @@ int main(void){
         .fontmult = 3,
         .is_centered = true,
         .is_halfway = true,
+        .is_cleared = true,
         .is_quiet = true
     };
 
@@ -108,14 +201,10 @@ int main(void){
     //affichage du buffer sur l'écran
     int result = fbink_init(fd, &config);
 
-    if (result >= 0){
-        result = fbink_print(fd, "Bonjour !", &config);
-    }
-
     if (result < 0){
         fprintf(stderr, "Erreur FBInk : %d\n", result);
     }else{
-        result = wait_for_touch();
+        result = wait_for_touch(fd, &config);
     }
 
     int close_result = fbink_close(fd);
