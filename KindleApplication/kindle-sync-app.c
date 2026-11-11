@@ -94,7 +94,8 @@ int main(void){
     FBInkConfig config = {
         .fontmult = 3,
         .is_centered = true,
-        .is_halfway = true
+        .is_halfway = true,
+        .is_quiet = true
     };
 
     int fd = fbink_open();
