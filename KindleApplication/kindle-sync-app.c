@@ -78,8 +78,6 @@ static int fetchAPI(struct Response *response){
 
         if (result != CURLE_OK){
             fprintf(stderr, "curl_easy_perform failed %s \n", curl_easy_strerror(result));
-        }else {
-            //truc à faire
         }
     }
     curl_easy_cleanup(curl);
@@ -110,7 +108,6 @@ static int wait_for_touch(int fbfd, FBInkConfig *config){
 
     //écoute et vérif
     for (;;){
-        //lance un timer de 30scd à chaque input
         if (refreshed){
             struct Response next = {0};
             if (fetchAPI(&next) == 0 && strcmp(next.text, shown.text) != 0){
