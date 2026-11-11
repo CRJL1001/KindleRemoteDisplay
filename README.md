@@ -14,7 +14,7 @@ Go API, FrontEnd editor &amp; C programme for kindle to display the text from th
 
 ## Démarrage rapide
 
-1. Clonnez le dépôt, modifiez la constante URL de *kindle-sync-app.c* avec l'IP de votre PC Hôte et lancez la compilation de *kindle-sync-app.c* avec le cross compiler adapté à votre kindle (pour ma part arm-kindlepw2-linux-gnueabi-gcc sur Kindle 5.15.1.1) -> nommez le *kindle-sync-app*
+1. Clonnez le dépôt, modifiez la constante URL de *kindle-sync-app.c* avec l'IP de votre PC Hôte et lancez la compilation de *kindle-sync-app.c* avec le cross compiler adapté à votre kindle (pour ma part arm-kindlepw2-linux-gnueabi-gcc sur Kindle 5.15.1.1) -> nommez l'exécutable *kindle-sync-app*
 
 2. Vérifier que le port 8080 est autorisé sur votre part feu. 
 
