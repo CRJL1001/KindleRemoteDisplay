@@ -1,4 +1,4 @@
-import { getKindleValue } from "./requestHandler.js"
+import { getKindleValue, setKindleValue } from "./requestHandler.js"
 
 const inputbtn = document.getElementById("input-btn");
 const inputtext = document.getElementById("input-text");
@@ -13,5 +13,16 @@ async function refreshKindleValue() {
   } catch (err) {
     console.error(err);
   }
-
 }
+
+inputbtn.addEventListener("click", async () => {
+  try {
+    const newValue = inputtext.value;
+    await setKindleValue(newValue);
+    console.log(`texte => ${newValue}`);
+    inputtext.value = "";
+    kindlevalue.textContent = newValue;
+  } catch (err) {
+    console.error(err);
+  }
+})
